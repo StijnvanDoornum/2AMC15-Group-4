@@ -18,11 +18,11 @@ from agents import MCAgent
 
 # configuration
 GRID_PATH         = Path("grid_configs/A1_grid.npy")  # picking the grid
-SIGMA             = 0 #0.30    # environment stochasticity
-N_EPISODES        = 3_000   # total training episodes
-MAX_STEPS         = 300     # safety cap per episode
-VIZ_INTERVAL      = 500     # run a GUI episode every … episodes
-MOVING_AVG_WINDOW = 50      # size of moving‑average window for the plot
+SIGMA             = 0.40    # environment stochasticity
+N_EPISODES        = 10_000   # total training episodes
+MAX_STEPS         = 1000   # safety cap per episode
+VIZ_INTERVAL      = 5_000    # run a GUI episode every … episodes
+MOVING_AVG_WINDOW = 500      # size of moving‑average window for the plot
 
 # visualizing an episode using the GUI
 def run_gui_episode(agent: MCAgent,
@@ -35,8 +35,7 @@ def run_gui_episode(agent: MCAgent,
         no_gui=False,          # turning the GUI on
         sigma=sigma,
         target_fps=20,         # slow enough to see, fast enough to finish
-        random_seed=None,
-        agent_start_pos = [3,11]
+        random_seed=None
     )
 
     state = env.reset()
@@ -59,7 +58,7 @@ state     = train_env.reset()
 agent = MCAgent(
     grid_shape=train_env.grid.shape,
     gamma=0.95,
-    epsilon=1.0, epsilon_min=0.05, epsilon_decay=0.99999,
+    epsilon=1.0, epsilon_min=0.05, epsilon_decay=0.9999,
     seed=2025
 )
 
@@ -114,7 +113,7 @@ if len(episode_returns) >= MOVING_AVG_WINDOW:
     )
 plt.xlabel("Episode")
 plt.ylabel("Return")
-plt.title("Q‑learning learning curve")
+plt.title("Monte Carlo learning curve")
 plt.legend()
 plt.tight_layout()
 plt.show()
