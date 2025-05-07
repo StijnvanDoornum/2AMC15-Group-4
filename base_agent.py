@@ -1,0 +1,115 @@
+"""Agent Base.
+
+We define the base class for all agents in this file.
+"""
+from abc import ABC, abstractmethod
+
+import numpy as np
+
+
+class BaseAgent(ABC):
+    def __init__(self):
+        """Base agent. All other agents should build on this class.
+
+        As a reminder, you are free to add more methods/functions to this class
+        if your agent requires it.
+        """
+
+    @abstractmethod
+    def take_action(self, state: tuple[int, int]) -> int:
+        """Any code that does the action should be included here.
+
+        Args:
+            state: The updated position of the agent.
+        """
+        raise NotImplementedError
+    
+    @abstractmethod
+    def update(self, state: tuple[int, int], reward: float, action: int):
+        """Any code that processes a reward given the state and updates the agent.
+
+        Args:
+            state: The updated position of the agent.
+            reward: The value which is returned by the environment as a
+                reward.
+            action: The action which was taken by the agent.
+        """
+        raise NotImplementedError
+
+########################
+ACTIONS = [0, 1, 2, 3]  
+ACTION_TO_DELTA = {
+    0: (0, 1),
+    1: (0, -1),
+    2: (-1, 0),
+    3: (1, 0)
+}
+
+class ValueIterationAgent(BaseAgent):
+    def __init__(self, gamma=0.9, theta=1e-4, max_iterations=1000):
+        super().__init__()
+        self.gamma = gamma
+        self.theta = theta
+        self.max_iterations = max_iterations
+        self.V = None
+        self.policy = None
+        self.grid_shape = None
+        self.grid = None
+
+    def _in_bounds(self, pos):
+        x, y = pos
+        return (
+            0 <= x and x < self.grid_shape[0] and
+            0 <= y and y < self.grid_shape[1]
+        )
+    def _get_possible_actions(self, state):
+        return ACTIONS  # All directions 
+
+    def train(self, env):
+        self.grid = env.grid
+        self.grid_shape = self.grid.shape
+        self.V = np.zeros(self.grid_shape)
+        self.policy = np.zeros(self.grid_shape, dtype=int)
+
+        for it in range(self.max_iterations):
+            delta = 0
+            new_V = np.copy(self.V)
+
+            for x in range(self.grid_shape[0]):
+                for y in range(self.grid_shape[1]):
+                    if self.grid[x, y] in (1, 2):  # Skip walls
+                        continue
+                    state = (x, y)
+                    max_value = float('-inf')
+                    best_action = 0
+
+                    for a in self._get_possible_actions(state):
+                        value = 0
+                        for b in ACTIONS:
+                            prob = 1 - env.sigma if a == b else env.sigma / 3  # probability of action b occurring when you intended to take action a
+                            dx, dy = ACTION_TO_DELTA[b] #movement direction for action b 
+                            next_state = (x + dx, y + dy)
+                            if not self._in_bounds(next_state):
+                                next_state = state  # Bounce back
+                            reward = env.reward_fn(self.grid, next_state)
+                            value += prob * (reward + self.gamma * self.V[next_state])
+                        
+                        if value > max_value:
+                            max_value = value
+                            best_action = a
+
+                    new_V[state] = max_value
+                    self.policy[state] = best_action
+                    delta = max(delta, abs(self.V[state] - max_value))
+
+            self.V = new_V
+            if delta < self.theta:
+                break
+
+    def take_action(self, state):
+        if self.policy is None:
+            raise ValueError("Policy not computed. Run train(env) first.")
+        return self.policy[state]
+
+    def update(self, state, reward, action):
+        pass  # Value iteration is offline, no need to update per step
