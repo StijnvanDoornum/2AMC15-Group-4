@@ -9,6 +9,8 @@ from tqdm import trange
 try:
     from world import Environment
     from agents.random_agent import RandomAgent
+    from agents.base_agent import ValueIterationAgent
+    
 except ModuleNotFoundError:
     from os import path
     from os import pardir
@@ -51,10 +53,16 @@ def main(grid_paths: list[Path], no_gui: bool, iters: int, fps: int,
                           random_seed=random_seed)
         
         # Initialize agent
-        agent = RandomAgent()
+        # agent = RandomAgent()
+        
+        
         
         # Always reset the environment to initial state
         state = env.reset()
+        agent = ValueIterationAgent()
+        agent._start_state = state
+        agent.train(env)
+
         for _ in trange(iters):
             
             # Agent takes an action based on the latest observation and info.
