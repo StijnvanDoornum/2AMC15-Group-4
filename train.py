@@ -5,6 +5,8 @@ Train your RL Agent in this file.
 from argparse import ArgumentParser
 from pathlib import Path
 from tqdm import trange
+import time
+
 
 try:
     from world import Environment
@@ -47,6 +49,7 @@ def main(grid_paths: list[Path], no_gui: bool, iters: int, fps: int,
     """Main loop of the program."""
 
     for grid in grid_paths:
+        start_time = time.time()
         
         # Set up the environment
         env = Environment(grid, no_gui,sigma=sigma, target_fps=fps, 
@@ -79,6 +82,8 @@ def main(grid_paths: list[Path], no_gui: bool, iters: int, fps: int,
 
         # Evaluate the agent
         Environment.evaluate_agent(grid, agent, iters, sigma, random_seed=random_seed)
+        end_time = time.time()
+        print(f"Training + evaluation on {grid.name} completed in {end_time - start_time:.2f} seconds.")
 
 
 if __name__ == '__main__':
