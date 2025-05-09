@@ -19,7 +19,7 @@ class MCAgent(BaseAgent):
         gamma: float = 0.95,             # the discount factor
         epsilon: float = 1.0,            # start of epsilon‑greedy schedule
         epsilon_min: float = 0.05,
-        epsilon_decay: float = 0.995,
+        epsilon_decay: float = 0.99,
         seed: int | None = 0,
     ):
         self.rng = np.random.default_rng(seed) 
