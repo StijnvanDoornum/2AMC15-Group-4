@@ -20,9 +20,9 @@ from agents import QLearningAgent
 GRID_PATH         = Path("grid_configs/A1_grid.npy")  # picking the grid
 SIGMA             = 0 #0.30    # environment stochasticity
 N_EPISODES        = 3_000   # total training episodes
-MAX_STEPS         = 600     # safety cap per episode
-VIZ_INTERVAL      = 500     # run a GUI episode every … episodes
-MOVING_AVG_WINDOW = 50      # size of moving‑average window for the plot
+MAX_STEPS         = 300     # safety cap per episode
+VIZ_INTERVAL      = 1000     # run a GUI episode every … episodes
+MOVING_AVG_WINDOW = 1000      # size of moving‑average window for the plot
 
 # visualizing an episode using the GUI
 def run_gui_episode(agent: QLearningAgent,
