@@ -10,6 +10,7 @@ from datetime import datetime
 import time
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 from tqdm import tqdm
 
 from world.environment import Environment
@@ -19,10 +20,10 @@ from agents import MCAgent
 # configuration
 GRID_PATH         = Path("grid_configs/A1_grid.npy")  # picking the grid
 SIGMA             = 0 #0.30    # environment stochasticity
-N_EPISODES        = 3_000   # total training episodes
+N_EPISODES        = 100_000   # total training episodes
 MAX_STEPS         = 300     # safety cap per episode
-VIZ_INTERVAL      = 500     # run a GUI episode every … episodes
-MOVING_AVG_WINDOW = 50      # size of moving‑average window for the plot
+VIZ_INTERVAL      = 300     # run a GUI episode every … episodes
+MOVING_AVG_WINDOW = 1000      # size of moving‑average window for the plot
 
 # visualizing an episode using the GUI
 def run_gui_episode(agent: MCAgent,
@@ -36,7 +37,6 @@ def run_gui_episode(agent: MCAgent,
         sigma=sigma,
         target_fps=20,         # slow enough to see, fast enough to finish
         random_seed=None,
-        agent_start_pos = [3,11]
     )
 
     state = env.reset()
@@ -58,8 +58,8 @@ state     = train_env.reset()
 
 agent = MCAgent(
     grid_shape=train_env.grid.shape,
-    gamma=0.95,
-    epsilon=1.0, epsilon_min=0.05, epsilon_decay=0.99999,
+    gamma=1,
+    epsilon=1, epsilon_min=0.05, epsilon_decay=0.9993,
     seed=2025
 )
 
@@ -90,7 +90,7 @@ for ep in tqdm(range(1, N_EPISODES + 1), desc="Training", ncols=100):
               if len(episode_returns) >= MOVING_AVG_WINDOW else np.nan)
         tqdm.write(
             f"Episode {ep:>4} | Return {G:>6.1f} | "
-            f"MovingAvg {ma:>6.1f} | ε {agent.epsilon:5.3f}"
+            f"MovingAvg {ma:>6.1f} | ε {agent.epsilon:5.3f} | MAX_STEPS {MAX_STEPS:>4} | "
         )
 
     # show with GUI

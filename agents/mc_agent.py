@@ -22,9 +22,10 @@ class MCAgent(BaseAgent):
         epsilon_decay: float = 0.995,
         seed: int | None = 0,
     ):
+        self.rng = np.random.default_rng(seed) 
         self.n_cols, self.n_rows = grid_shape          # environment returns (cols, rows)
         self.n_actions = 4                             # up,down,left,right
-        self.Q = np.zeros((self.n_rows, self.n_cols, self.n_actions), dtype=np.float32)
+        self.Q = self.rng.random((self.n_rows, self.n_cols, self.n_actions), dtype=np.float32)
         self.returns = np.empty((self.n_rows, self.n_cols, self.n_actions), dtype=object)
         for index, _ in np.ndenumerate(self.returns):
             self.returns[index] = []  # each element gets a unique list
@@ -35,9 +36,9 @@ class MCAgent(BaseAgent):
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
 
-        self.rng = np.random.default_rng(seed) 
-
         self.episodic_state_action_pairs = []
+        self._last_state = None
+        self._last_action = None
 
     def take_action(self, state: tuple[int, int]) -> int:
         row, col = state
@@ -47,14 +48,12 @@ class MCAgent(BaseAgent):
             action = int(self.rng.integers(self.n_actions))
         else:
             action = int(np.argmax(self.Q[row, col]))
-
+        self._last_action = action
         return action
 
     # This is called by the training loop AFTER env.step
     def update(self, state: tuple[int, int], reward: float, executed_action: int):
         self.episodic_state_action_pairs.append((self._last_state, executed_action, reward))
-        
-
 
     # Can be called to end the episode
     def end_episode(self):
@@ -63,15 +62,26 @@ class MCAgent(BaseAgent):
             self.epsilon *= self.epsilon_decay
         G = 0
         visited = set()
+        total_returns = {}
         for state, action, reward in reversed(self.episodic_state_action_pairs):
+            row, col = state
             G = reward + self.gamma * G
-            key = (state, action)
+            if (row, col, action) not in total_returns:
+                total_returns[row, col, action] = []
+            total_returns[row, col, action].append(G)
+            visited.add((state, action))
 
-            if key not in visited:
-                row, col = state
-                self.returns[row, col, action].append(G)
-                self.Q[row, col, action] = np.mean(self.returns[row, col, action])
-                visited.add(key)
+        # Calculate the weighted mean of the returns for each state-action pair depended on the number of times it was visited
+        for state, action in visited:
+            row, col = state
+            if len(total_returns[row, col, action]) > 0:
+                self.returns[row, col, action].append(np.mean(total_returns[row, col, action]))
+
+
+        # Flatten the updates to reduce nested loops
+        for (state, action) in visited:
+            row, col = state
+            self.Q[row, col, action] = np.mean(self.returns[row, col, action])
 
         self.episodic_state_action_pairs = []  # reset the episodic state-action pairs for the next episode
-        
+        self._last_state = None
