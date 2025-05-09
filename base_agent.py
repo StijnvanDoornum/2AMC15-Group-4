@@ -108,7 +108,7 @@ class ValueIterationAgent(BaseAgent):
 
         print("----------------------------------------------------------------------")
         #printing number of iterations until optimal
-        print("Number of iterations = ", it)
+        # print("Number of iterations = ", it)
 
         #printing the values for all states visited in the optimal path
         start_state = getattr(self, "_start_state", None)
