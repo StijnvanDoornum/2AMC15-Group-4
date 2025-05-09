@@ -114,7 +114,7 @@ if len(episode_returns) >= MOVING_AVG_WINDOW:
     )
 plt.xlabel("Episode")
 plt.ylabel("Return")
-plt.title("Q‑learning learning curve")
+plt.title("Monte Carlo learning curve")
 plt.legend()
 plt.tight_layout()
 plt.show()
