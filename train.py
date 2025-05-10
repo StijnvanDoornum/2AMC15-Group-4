@@ -10,8 +10,7 @@ import time
 
 try:
     from world import Environment
-    from agents.random_agent import RandomAgent
-    from agents.base_agent import ValueIterationAgent
+    from agents.value_iteration import ValueIterationAgent
     
 except ModuleNotFoundError:
     from os import path
