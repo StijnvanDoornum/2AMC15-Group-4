@@ -12,14 +12,14 @@ from agents import MCAgent
 # Configuration
 GRID_PATH         = Path("grid_configs/A1_grid.npy")
 SIGMA             = 0
-N_EPISODES        = 30_000
-MAX_STEPS         = 300
-MOVING_AVG_WINDOW = 14000
+N_EPISODES        = 40_000
+MAX_STEPS         = 500
+MOVING_AVG_WINDOW = 30000
 VIZ_INTERVAL      = 1000  # Set >N_EPISODES to avoid GUI during sweeps
 
 # Hyperparameter sweeps
 EPSILON_DECAYS   = [0.999, 0.9995, 0.9999]
-MAX_STEPSS      = [250, 300, 350]
+MAX_STEPSS      = [250, 350, 500]
 
 # Store results
 results = {}
