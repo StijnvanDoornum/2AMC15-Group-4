@@ -117,7 +117,7 @@ def train_agent(
                   if len(episode_returns) >= MOVING_AVG_WINDOW else np.nan)
             tqdm.write(
                 f"Episode {ep:>4} | Return {G:>6.1f} | "
-                f"MovingAvg {ma:>6.1f} | ε {agent.epsilon:5.3f} | MAX_STEPS {MAX_STEPS:>4} | "
+                f"MovingAvg {ma:>6.1f} | ε {agent.epsilon:5.3f} | MAX_STEPS {max_steps:>4} | "
             )
 
         # show with GUI
