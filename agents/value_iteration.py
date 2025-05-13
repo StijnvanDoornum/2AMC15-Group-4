@@ -10,7 +10,7 @@ ACTION_TO_DELTA = {
 }
 
 class ValueIterationAgent(BaseAgent):
-    def __init__(self, gamma=0.9, theta=1e-4, max_iterations=1000):
+    def __init__(self, gamma=0.9, theta=1e-9, max_iterations=1000):
         super().__init__()
         self.gamma = gamma
         self.theta = theta
@@ -68,41 +68,7 @@ class ValueIterationAgent(BaseAgent):
 
             self.V = new_V
             if delta < self.theta:
-                break
-
-        print("----------------------------------------------------------------------")
-        #printing number of iterations until optimal
-        # print("Number of iterations = ", it)
-
-        #printing the values for all states visited in the optimal path
-        start_state = getattr(self, "_start_state", None)
-        if start_state is None:
-            print("Start state not provided; cannot trace optimal path.")
-            return
-
-        state = start_state
-        visited = set()
-
-        print("\nOptimal Path State Values:")
-        while True:
-            if state in visited:
-                print("Loop detected — stopping trace.")
-                break
-            visited.add(state)
-
-            state_int = (int(state[0]), int(state[1]))
-            print(f"State: {state_int}, Value: {self.V[state]}")
-
-
-            action = self.policy[state]
-            dx, dy = ACTION_TO_DELTA[action]
-            next_state = (state[0] + dx, state[1] + dy)
-
-            if not self._in_bounds(next_state) or self.grid[next_state] in (1, 2):
-                break
-
-            state = next_state
-        print("------------------------------------------------------")
+                continue
         
 
 

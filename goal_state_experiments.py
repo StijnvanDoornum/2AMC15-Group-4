@@ -3,26 +3,23 @@ from pathlib import Path
 import numpy as np
 
 from world.environment import Environment
-from agents import QLearningAgent, MCAgent
-from agents.value_iteration import ValueIterationAgent
+from agents import QLearningAgent, MCAgent, ValueIterationAgent
 
 
-def evaluate_steps(agent, env: Environment, start_state, max_steps: int) -> int:
+def evaluate_steps(agent, env: Environment, max_steps: int) -> int:
     """
     Run one greedy episode from the given start state and return number of steps to termination.
     """
     state = env.reset()
-    # Ensure same starting position
-    if hasattr(env, 'set_state'):
-        env.set_state(start_state)
-        state = start_state
     done = False
     steps = 0
+    rewards = 0
     while not done and steps < max_steps:
         steps += 1
         action = agent.take_action(state)
-        state, _, done, _ = env.step(action)
-    return steps
+        state, reward, done, _ = env.step(action)
+        rewards += reward
+    return steps, rewards
 
 
 def train_on_grid(grid_fp: Path,
@@ -35,8 +32,8 @@ def train_on_grid(grid_fp: Path,
     Returns timing and step-count metrics for each agent.
     """
     # Prepare environment and fixed start state
-    env = Environment(grid_fp=grid_fp, no_gui=True, sigma=sigma, random_seed=seed)
-    start_state = env.reset()
+    env = Environment(grid_fp=grid_fp, no_gui=True, sigma=sigma, random_seed=seed, agent_start_pos=(10,3))
+    env.reset()
 
     results = []
 
@@ -46,7 +43,7 @@ def train_on_grid(grid_fp: Path,
         ('Q-Learning', QLearningAgent, {'alpha': 0.15, 'gamma': 0.95,
                                         'epsilon': 1.0, 'epsilon_min': 0.05, 'epsilon_decay': 0.995}),
         ('MonteCarlo', MCAgent, {'gamma': 1.0,
-                                 'epsilon': 1.0, 'epsilon_min': 0.05, 'epsilon_decay': 0.9993})
+                                 'epsilon': 1.0, 'epsilon_min': 0.05, 'epsilon_decay': 0.999})
     ]
 
     # Run each agent
@@ -57,12 +54,19 @@ def train_on_grid(grid_fp: Path,
 
         # Instantiate agent
         if AgentCls is ValueIterationAgent:
-            agent = AgentCls()
-            agent._start_state = start_state
-        else:
-            agent = AgentCls(
+            agent = ValueIterationAgent()
+        elif AgentCls is QLearningAgent:
+            agent = QLearningAgent(
                 grid_shape=env_agent.grid.shape,
-                **params,
+                alpha=0.15, gamma=0.95,
+                epsilon=1.0, epsilon_min=0.05, epsilon_decay=0.995,
+                seed=seed
+            )
+        else:
+            agent = MCAgent(
+                grid_shape=env_agent.grid.shape,
+                gamma=1.0,
+                epsilon=1.0, epsilon_min=0.05, epsilon_decay=0.999,
                 seed=seed
             )
 
@@ -71,7 +75,6 @@ def train_on_grid(grid_fp: Path,
         if isinstance(agent, ValueIterationAgent):
             agent.train(env_agent)
         else:
-            returns = []
             for ep in range(1, n_episodes + 1):
                 state = env_agent.reset()
                 done = False
@@ -83,19 +86,19 @@ def train_on_grid(grid_fp: Path,
                     agent.update(next_s, reward, info['actual_action'])
                     state = next_s
                 agent.end_episode()
-                returns.append(steps)
         t1 = time.time()
         training_time = t1 - t0
 
         # Evaluate greedy-run steps
-        steps_to_goal = evaluate_steps(agent, env, start_state, max_steps)
+        steps_to_goal, rewards = evaluate_steps(agent, env, max_steps)
 
         # Record results
         results.append({
             'grid': grid_fp.name,
             'agent': name,
             'training_time': training_time,
-            'steps_to_goal': steps_to_goal
+            'steps_to_goal': steps_to_goal,
+            'rewards': rewards
         })
 
     return results
@@ -104,13 +107,27 @@ def train_on_grid(grid_fp: Path,
 def main():
     # Grid configurations
     grids = [
-        Path("grid_configs/A1_grid.npy")
+        Path("grid_configs/1_goals_1.npy"),
+        Path("grid_configs/2_goals_1.npy"),
+        Path("grid_configs/3_goals_1.npy"),
+        Path("grid_configs/1_goals_2.npy"),
+        Path("grid_configs/2_goals_2.npy"),
+        Path("grid_configs/3_goals_2.npy"),
+        Path("grid_configs/1_goals_3.npy"),
+        Path("grid_configs/2_goals_3.npy"),
+        Path("grid_configs/3_goals_3.npy"),
+        Path("grid_configs/1_goals_4.npy"),
+        Path("grid_configs/2_goals_4.npy"),
+        Path("grid_configs/3_goals_4.npy"),
+        Path("grid_configs/1_goals_5.npy"),
+        Path("grid_configs/2_goals_5.npy"),
+        Path("grid_configs/3_goals_5.npy"),
     ]
 
     # Training parameters
     sigma = 0.1
     seed = 2025
-    n_episodes = 50_000
+    n_episodes = 5_000
     max_steps = 300
 
     summary = []
@@ -118,8 +135,8 @@ def main():
         print(f"\n=== Training on {grid.name} ===")
         grid_results = train_on_grid(grid, sigma, seed, n_episodes, max_steps)
         for res in grid_results:
-            print(f"{res['agent']:12} | Time: {res['training_time']:.2f}s | Steps: {res['steps_to_goal']}")
-        summary.extend(grid_results)
+            print(f"{res['agent']:12} | Time: {res['training_time']:.2f}s | Steps: {res['steps_to_goal']} | Rewards: {res['rewards']}")
+        summary.extend(grid_results + [{'grid': grid.name}])
 
     # Save summary
     Path("results").mkdir(exist_ok=True)

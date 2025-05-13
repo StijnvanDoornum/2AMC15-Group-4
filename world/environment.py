@@ -177,6 +177,7 @@ class Environment:
         self.terminal_state = False
         self.info = self._reset_info()
         self.world_stats = self._reset_world_stats()
+        self.num_goals = np.sum(self.grid == 3)
 
         # GUI specific code
         if not self.no_gui:
@@ -208,7 +209,7 @@ class Environment:
             case 3:  # Moved to a target tile
                 self.agent_pos = new_pos
                 self.grid[new_pos] = 0
-                if np.sum(self.grid == 3) == 0:
+                if np.sum(self.grid == 3) != self.num_goals:
                     self.terminal_state = True
                 self.info["target_reached"] = True
                 self.world_stats["total_targets_reached"] += 1
@@ -255,7 +256,7 @@ class Environment:
                 paused_info = self._reset_info()
                 paused_info["agent_moved"] = True
                 self.gui.render(self.grid, self.agent_pos, paused_info,
-                                0, is_single_step)    
+                                0, is_single_step)
 
         # Add stochasticity into the agent action
         val = random.random()

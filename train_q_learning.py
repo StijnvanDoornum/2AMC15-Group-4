@@ -17,7 +17,7 @@ from agents import QLearningAgent
 
 
 # configuration
-GRID_PATH         = Path("grid_configs/A1_grid.npy")  # picking the grid
+GRID_PATH         = Path("grid_configs/3_goal_1.npy")  # picking the grid
 SIGMA             = 0 #0.30    # environment stochasticity
 N_EPISODES        = 3_000   # total training episodes
 MAX_STEPS         = 600     # safety cap per episode
