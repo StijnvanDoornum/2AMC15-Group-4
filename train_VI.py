@@ -52,7 +52,7 @@ def main(grid_paths: list[Path], no_gui: bool, iters: int, fps: int,
         
         # Set up the environment
         env = Environment(grid, no_gui,sigma=sigma, target_fps=fps, 
-                          random_seed=random_seed)
+                          random_seed=random_seed, agent_start_pos=(4, 5))
         
         # Initialize agent
         # agent = RandomAgent()
@@ -80,7 +80,7 @@ def main(grid_paths: list[Path], no_gui: bool, iters: int, fps: int,
             agent.update(state, reward, info["actual_action"])
 
         # Evaluate the agent
-        Environment.evaluate_agent(grid, agent, iters, sigma, random_seed=random_seed)
+        Environment.evaluate_agent(grid, agent, iters, sigma, random_seed=random_seed, agent_start_pos = (5,4) )
         end_time = time.time()
         print(f"Training + evaluation on {grid.name} completed in {end_time - start_time:.2f} seconds.")
 
