@@ -125,9 +125,9 @@ def main():
     ]
 
     # Training parameters
-    sigma = 0.1
-    seed = 2025
-    n_episodes = 5_000
+    sigma = 0.0
+    seed = 20250
+    n_episodes = 10_000
     max_steps = 300
 
     summary = []
