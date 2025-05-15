@@ -8,7 +8,7 @@ import random
 from tqdm import tqdm
 
 from world.environment import Environment
-from agents import MCAgent
+from agents.mc_agent import MCAgent
 
 
 # configuration
@@ -117,3 +117,5 @@ timestamp = datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
 Path("results").mkdir(exist_ok=True)
 np.save(Path("results") / f"q_table_{timestamp}.npy", agent.Q)
 print(f"\nTraining finished – Q‑table saved as results/q_table_{timestamp}.npy")
+mean_return = np.mean(episode_returns)
+print(f"Mean return over {N_EPISODES} episodes (σ={SIGMA}): {mean_return:.2f}")

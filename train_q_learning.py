@@ -18,7 +18,7 @@ from agents import QLearningAgent
 
 # configuration
 GRID_PATH         = Path("grid_configs/A1_grid.npy")  # picking the grid
-SIGMA             = 0 #0.30    # environment stochasticity
+SIGMA             = 0.5 #0.30    # environment stochasticity
 N_EPISODES        = 3_000   # total training episodes
 MAX_STEPS         = 600     # safety cap per episode
 VIZ_INTERVAL      = 500     # run a GUI episode every … episodes
@@ -122,3 +122,5 @@ timestamp = datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
 Path("results").mkdir(exist_ok=True)
 np.save(Path("results") / f"q_table_{timestamp}.npy", agent.Q)
 print(f"\nTraining finished – Q‑table saved as results/q_table_{timestamp}.npy")
+mean_return = np.mean(episode_returns)
+print(f"Mean return over {N_EPISODES} episodes (σ={SIGMA}): {mean_return:.2f}")

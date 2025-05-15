@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 from tqdm import trange
 import time
-
+import numpy as np
 
 try:
     from world import Environment
@@ -64,25 +64,55 @@ def main(grid_paths: list[Path], no_gui: bool, iters: int, fps: int,
         agent = ValueIterationAgent()
         agent._start_state = state
         agent.train(env)
+        evaluate_mean_return(agent, grid, sigma=sigma, episodes=3000, max_steps=500)
 
-        for _ in trange(iters):
+        # for _ in trange(iters):
             
-            # Agent takes an action based on the latest observation and info.
+        #     # Agent takes an action based on the latest observation and info.
+        #     action = agent.take_action(state)
+
+        #     # The action is performed in the environment
+        #     state, reward, terminated, info = env.step(action)
+            
+        #     # If the final state is reached, stop.
+        #     if terminated:
+        #         break
+
+        #     agent.update(state, reward, info["actual_action"])
+
+        # # Evaluate the agent
+        # Environment.evaluate_agent(grid, agent, iters, sigma, random_seed=random_seed)
+        # end_time = time.time()
+        # print(f"Training + evaluation on {grid.name} completed in {end_time - start_time:.2f} seconds.")
+
+def evaluate_mean_return(agent, grid_fp, sigma, episodes=3000, max_steps=600, seed=0):
+    returns = []
+
+    for ep in range(episodes):
+        env = Environment(
+            grid_fp=grid_fp,
+            no_gui=True,
+            sigma=sigma,
+            agent_start_pos=None,
+            target_fps=-1,
+            random_seed=seed + ep  # vary seed for randomness
+        )
+        state = env.reset()
+        G = 0
+        steps = 0
+        done = False
+
+        while not done and steps < max_steps:
             action = agent.take_action(state)
+            state, reward, done, info = env.step(action)
+            G += reward
+            steps += 1
 
-            # The action is performed in the environment
-            state, reward, terminated, info = env.step(action)
-            
-            # If the final state is reached, stop.
-            if terminated:
-                break
+        returns.append(G)
 
-            agent.update(state, reward, info["actual_action"])
-
-        # Evaluate the agent
-        Environment.evaluate_agent(grid, agent, iters, sigma, random_seed=random_seed)
-        end_time = time.time()
-        print(f"Training + evaluation on {grid.name} completed in {end_time - start_time:.2f} seconds.")
+    mean_return = np.mean(returns)
+    print(f"Mean return over {episodes} episodes (σ={sigma}): {mean_return:.2f}")
+    return mean_return
 
 
 if __name__ == '__main__':
