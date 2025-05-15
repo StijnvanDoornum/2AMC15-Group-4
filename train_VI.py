@@ -85,7 +85,7 @@ def main(grid_paths: list[Path], no_gui: bool, iters: int, fps: int,
         # end_time = time.time()
         # print(f"Training + evaluation on {grid.name} completed in {end_time - start_time:.2f} seconds.")
 
-def evaluate_mean_return(agent, grid_fp, sigma, episodes=3000, max_steps=600, seed=0):
+def evaluate_mean_return(agent, grid_fp, sigma, episodes=3000, max_steps=600, seed=2025):
     returns = []
 
     for ep in range(episodes):
