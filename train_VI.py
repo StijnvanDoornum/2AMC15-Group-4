@@ -44,8 +44,10 @@ def parse_args():
 
 
 def main(grid_paths: list[Path], no_gui: bool, iters: int, fps: int,
-         sigma: float, random_seed: int):
+         sigma: float, random_seed: int) -> tuple[ValueIterationAgent, list[float]]:
     """Main loop of the program."""
+    returns = []
+    agent = None
 
     for grid in grid_paths:
         start_time = time.time()
@@ -72,19 +74,22 @@ def main(grid_paths: list[Path], no_gui: bool, iters: int, fps: int,
 
             # The action is performed in the environment
             state, reward, terminated, info = env.step(action)
-            
+
+            G = reward
             # If the final state is reached, stop.
             if terminated:
                 break
 
             agent.update(state, reward, info["actual_action"])
+            returns.append(G)
 
         # Evaluate the agent
         Environment.evaluate_agent(grid, agent, iters, sigma, random_seed=random_seed)
         end_time = time.time()
         print(f"Training + evaluation on {grid.name} completed in {end_time - start_time:.2f} seconds.")
 
+    return agent, returns
 
 if __name__ == '__main__':
     args = parse_args()
-    main(args.GRID, args.no_gui, args.iter, args.fps, args.sigma, args.random_seed)
+    agent, returns = main(args.GRID, args.no_gui, args.iter, args.fps, args.sigma, args.random_seed)
