@@ -13,10 +13,10 @@ from agents.mc_agent import MCAgent
 
 # configuration
 GRID_PATH         = Path("grid_configs/A1_grid.npy")  # picking the grid
-SIGMA             = 0 #0.30    # environment stochasticity
-N_EPISODES        = 100_000   # total training episodes
-MAX_STEPS         = 300     # safety cap per episode
-VIZ_INTERVAL      = 300     # run a GUI episode every … episodes
+SIGMA             = 0.5 #0.30    # environment stochasticity
+N_EPISODES        = 40_000   # total training episodes
+MAX_STEPS         = 350     # safety cap per episode
+VIZ_INTERVAL      = 500     # run a GUI episode every … episodes
 MOVING_AVG_WINDOW = 1000      # size of moving‑average window for the plot
 
 # visualizing an episode using the GUI
