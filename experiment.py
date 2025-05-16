@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import time
-from tqdm import trange
 from train_q_learning import train_agent as train_q_learning
 from train_mc import train_agent as train_mc
 from train_VI import main as train_vi
@@ -10,7 +9,6 @@ from agents import ValueIterationAgent
 from world.environment import Environment
 from agents import QLearningAgent
 from agents import MCAgent
-from agents import ValueIterationAgent
 import argparse
 import itertools
 
@@ -680,13 +678,11 @@ def compare_epsilon_parameters(
         tag = f"eps={epsilon}_min={epsilon_min}_decay={epsilon_decay}"
         print(f"\nRunning {agent_type} with {tag}")
         # Use default reward function
-        # reward_fn = custom_reward_function(empty_reward=-1, wall_reward=-5, target_reward=10)
         env = Environment(
             grid_fp=grid_path,
             no_gui=True,
             sigma=sigma,
             target_fps=20,
-            # reward_fn=reward_fn,
             random_seed=random_seed
         )
         state = env.reset()
@@ -710,9 +706,6 @@ def compare_epsilon_parameters(
                 epsilon_decay=epsilon_decay,
                 seed=random_seed
             )
-        else:
-            print("Only Q-learning and Monte Carlo are supported for epsilon tuning")
-            return
         returns = []
         for ep in range(episodes):
             state = env.reset()
@@ -965,6 +958,7 @@ if __name__ == "__main__":
     
     elif args.experiment == "agent_comparison_with_optimal_rewards":
         compare_agents_with_optimal_rewards(    
+        # Optimal reward setting candidates
         q_reward_sets=[
             {"empty_reward": -1, "wall_reward": -5, "target_reward": 20},
             {"empty_reward": -1, "wall_reward": -10, "target_reward": 20},
@@ -996,6 +990,7 @@ if __name__ == "__main__":
     
     elif args.experiment == "optimal_epsilon_comparison":
         compare_agents_with_optimal_epsilon(
+            # Optimal epsilon setting candidates
             q_epsilon_params={"epsilon": 1.0, "epsilon_min": 0.05, "epsilon_decay": 0.995},
             mc_epsilon_params={"epsilon": 1.0, "epsilon_min": 0.05, "epsilon_decay": 0.999}
         )

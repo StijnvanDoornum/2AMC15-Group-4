@@ -1,108 +1,144 @@
+## Available Agents
 
-Welcome to Data Intelligence Challenge-2AMC15!
-This is the repository containing the challenge environment code.
+There are three main agents you can work with in this environment:
 
-## Quickstart
+### 1. Value Iteration Agent
 
-1. Create a virtual environment for this course with Python >= 3.10. Using conda, you can do: `conda create -n dic2025 python=3.11`. Use `conda activate dic2025` to activate it `conda deactivate` to deactivate it.
-2. Clone this repository into the local directory you prefer `git clone https://github.com/DataIntelligenceChallenge/2AMC15-2025.git`.
-3. Install the required packages `pip install -r requirements.txt`. Now, you are ready to use the simulation environment! :partying_face:	
-4. Run `$ python train.py grid_configs/example_grid.npy` to start training!
+- Use the file: `train_VI.py`
+- Example commands:
+  ```bash
+  python train_VI.py grid_configs/A1_grid.npy --sigma 0.0 --fps 5
+  ```
+  or for the larger grid:
+  ```bash
+  python train_VI.py grid_configs/hardex_grid.npy --sigma 0.0 --fps 5
+  ```
+- The `--fps` flag controls the speed of the GUI so you can observe the agent's movement.
 
-`train.py` is just an example training script. Inside this file, initialize the agent you want to train and evaluate. Feel free to modify it as necessary. Its usage is:
+### 2. Q-Learning Agent
+
+- Use the file: `train_q_learning.py`
+- You can modify the grid path, number of episodes, and other parameters at the beginning of the file, or pass them as command-line arguments.
+- Example command:
+  ```bash
+  python train_q_learning.py
+  ```
+- Example with custom parameters:
+  ```bash
+  python train_q_learning.py --alpha 0.01 --gamma 0.99 --epsilon 0.5 --episodes 5000 --max_steps 800
+  ```
+- To run a grid search for Q-learning using experiment.py:
+  ```bash
+  python experiment.py --experiment hyperparameter_comparison --agent q_learning
+  ```
+
+### 3. Monte Carlo Agent
+
+- Use the file: `train_mc.py`
+- You can modify the grid path, number of episodes, and other parameters at the beginning of the file, or pass them as command-line arguments.
+- Example command:
+  ```bash
+  python train_mc.py
+  ```
+- Example with custom parameters:
+  ```bash
+  python train_mc.py --gamma 0.99 --epsilon 0.5 --epsilon_decay 0.995 --episodes 20000 --max_steps 500
+  ```
+- To run a grid search for Monte Carlo using experiment.py:
+  ```bash
+  python experiment.py --experiment hyperparameter_comparison --agent monte_carlo
+  ```
+
+> **Note:**  
+> If you encounter errors about not finding the agent, check the import statements in the training files and ensure they match your folder and file structure.
+
+### Additional Experimentation
+
+You can experiment with different values of `sigma` for value iteration and plot the resulting rewards using the `sigma_testing.py` script:
+```bash
+python sigma_testing.py
+```
+
+## Parameter Configuration for Q-Learning and Monte Carlo
+
+Below are the main parameters and grid search values used for the Q-Learning and Monte Carlo agents in this environment. These are set in `experiment.py` for systematic experimentation.
+
+### Q-Learning Agent
+- **Learning Rate (alpha):** `[0.05, 0.10, 0.15, 0.20]`
+- **Discount Factor (gamma):** `[0.60, 0.80, 0.90, 0.99]`
+- **Epsilon (initial):** `1.0` (for epsilon-greedy exploration)
+- **Epsilon Decay:** `0.995`
+- **Epsilon Min:** `0.05`
+- **Sigma (stochasticity):** `0.1`
+- **Episodes:** `3000`
+- **Max Steps per Episode:** `600`
+
+#### Reward Function Grid (for reward_comparison):
+- **Empty Tile Reward:** `[-0.1, -1]`
+- **Wall/Obstacle Reward:** `[-1, -5, -10, -15]`
+- **Target Reward:** `[5, 10, 20]`
+
+### Monte Carlo Agent
+- **Discount Factor (gamma):** `1.0`
+- **Epsilon (initial):** `1.0` (for epsilon-greedy exploration)
+- **Epsilon Decay:** `[0.999, 0.9995, 0.9999]` (for hyperparameter grid)
+- **Epsilon Min:** `0.05` (or `0.00` for some experiments)
+- **Episodes:** `10000` (for hyperparameter grid)
+- **Max Steps per Episode:** `[250, 350, 500]` (for hyperparameter grid)
+
+#### Reward Function Grid (for reward_comparison):
+- **Empty Tile Reward:** `[-0.1, -1]`
+- **Wall/Obstacle Reward:** `[-1, -5, -10, -15]`
+- **Target Reward:** `[5, 10, 20]`
+
+> **Note:**
+> The above values are used for grid search and systematic comparison in `experiment.py`. You can modify these in the script to explore other configurations.
+
+## The `experiment.py` File
+
+The `experiment.py` file is a comprehensive script for running and comparing a wide range of experiments with different agents, hyperparameters, and reward functions. It is designed to facilitate systematic evaluation and visualization of RL agent performance in the DIC environment.
+
+### Usage
+
+You can run the experiment file with various arguments to select the type of experiment and agent:
 
 ```bash
-usage: train.py [-h] [--no_gui] [--sigma SIGMA] [--fps FPS] [--iter ITER]
-                [--random_seed RANDOM_SEED] 
-                GRID [GRID ...]
-
-DIC Reinforcement Learning Trainer.
-
-positional arguments:
-  GRID                  Paths to the grid file to use. There can be more than
-                        one.
-options:
-  -h, --help                 show this help message and exit
-  --no_gui                   Disables rendering to train faster (boolean)
-  --sigma SIGMA              Sigma value for the stochasticity of the environment. (float, default=0.1, should be in [0, 1])
-  --fps FPS                  Frames per second to render at. Only used if no_gui is not set. (int, default=30)
-  --iter ITER                Number of iterations to go through. Should be integer. (int, default=1000)
-  --random_seed RANDOM_SEED  Random seed value for the environment. (int, default=0)
+python experiment.py --experiment <experiment_type> --agent <agent_type>
 ```
 
-## Code guide
+#### Arguments
 
-The code is made up of 2 modules: 
+- `--experiment`  
+  Specifies the type of experiment to run. Available options include:
+  - `reward_comparison` — Grid search over different reward functions.
+  - `agent_comparison` — Compare Q-learning, Monte Carlo, and Value Iteration agents.
+  - `hyperparameter_comparison` — Grid search over agent hyperparameters (e.g., learning rate, gamma).
+  - `agent_comparison_with_optimal_rewards` — Compare all agents using their optimal reward parameters.
+  - `epsilon_comparison` — Grid search over epsilon-greedy exploration parameters.
+  - `optimal_epsilon_comparison` — Compare Q-learning and Monte Carlo with their best epsilon settings.
+  - `reward_grid_comparison` — Compare a single agent on several hand-picked reward parameter sets.
+  - `q_mc_selected_epsilon` — Compare Q-learning and Monte Carlo on selected epsilon schedules in a two-panel plot.
 
-1. `agent`
-2. `world`
+- `--agent`  
+  Specifies the agent to use for the experiment (when relevant). Options:
+  - `q_learning`
+  - `monte_carlo`
+  - `value_iteration`
 
-### The `agent` module
+### Example Commands
 
-The `agent` module contains the `BaseAgent` class as well as some benchmark agents you may want to test against.
-
-The `BaseAgent` is an abstract class and all RL agents for DIC must inherit from/implement it.
-If you know/understand class inheritence, skip the following section:
-
-#### `BaseAgent` as an abstract class
-Here you can find an explanation about abstract classes [Geeks for Geeks](https://www.geeksforgeeks.org/abstract-classes-in-python/).
-
-Think of this like how all models in PyTorch start like 
-
-```python
-class NewModel(nn.Module):
-    def __init__(self):
-        super().__init__()
-    ...
-```
-
-In this case, `NewModel` inherits from `nn.Module`, which gives it the ability to do back propagation, store parameters, etc. without you having to manually code that every time.
-It also ensures that every class that inherits from `nn.Module` contains _at least_ the `forward()` method, which allows a forward pass to actually happen.
-
-In the case of your RL agent, inheriting from `BaseAgent` guarantees that your agent implements `update()` and `take_action()`.
-This ensures that no matter what RL agent you make and however you code it, the environment and training code can always interact with it in the same way.
-Check out the benchmark agents to see examples.
-
-### The `world` module
-
-The world module contains:
-1. `grid_creator.py`
-2. `environment.py`
-3. `grid.py`
-4. `gui.py`
-
-#### Grid creator
-Run this file to create new grids.
-
+To run a reward function grid search for Q-learning:
 ```bash
-$ python grid_creator.py
+python experiment.py --experiment reward_comparison --agent q_learning
 ```
 
-This will start up a web server where you create new grids, of different sizes with various elements arrangements.
-To view the grid creator itself, go to `127.0.0.1:5000`.
-All levels will be saved to the `grid_configs/` directory.
+To run a hyperparameter grid search for Q-learning:
+```bash
+python experiment.py --experiment hyperparameter_comparison --agent q_learning
+```
 
+You can type `python experiment.py -h` to see all available options and arguments for running experiments.
 
-#### The Environment
+### Output
 
-The `Environment` is very important because it contains everything we hold dear, including ourselves [^1].
-It is also the name of the class which our RL agent will act within. Most of the action happens in there.
-
-The main interaction with `Environment` is through the methods:
-
-- `Environment()` to initialize the environment
-- `reset()` to reset the environment
-- `step()` to actually take a time step with the environment
-- `Environment().evaluate_agent()` to evaluate the agent after training.
-
-[^1]: In case you missed it, this sentence is a joke. Please do not write all your code in the `Environment` class.
-
-#### The Grid
-
-The `Grid` class is the the actual representation of the world on which the agent moves. It is a 2D Numpy array.
-
-#### The GUI
-
-The Graphical User Interface provides a way for you to actually see what the RL agent is doing.
-While performant and written using PyGame, it is still about 1300x slower than not running a GUI.
-Because of this, we recommend using it only while testing/debugging and not while training.
+All experiments generate plots and save them in the `figs/` directory for easy analysis and inclusion in reports.
